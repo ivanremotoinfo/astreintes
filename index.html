@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calculadora de Astreintes | SuporteADV</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #0d0d0d; color: #e0e0e0; padding: 24px 16px; }
+  .container { max-width: 720px; margin: 0 auto; }
+
+  .header { text-align: center; margin-bottom: 28px; padding-bottom: 20px; border-bottom: 1px solid #222; }
+  h1 { font-size: 1.5rem; color: #008080; margin-bottom: 6px; }
+  .subtitle { font-size: 0.88rem; color: #888; line-height: 1.5; }
+  .brand { font-size: 0.78rem; margin-top: 8px; color: #555; }
+  .brand span.s { color: #8B00FF; font-weight: 700; }
+  .brand span.a { color: #008080; font-weight: 700; }
+
+  .card { background: #111; border-radius: 10px; border: 1px solid #222; border-left: 3px solid #8B00FF; padding: 20px 22px; margin-bottom: 14px; transition: border-left-color 0.2s; }
+  .card:hover { border-left-color: #008080; }
+  .card-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; color: #008080; font-weight: 700; margin-bottom: 16px; }
+
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 16px; }
+  @media (max-width: 520px) { .form-grid { grid-template-columns: 1fr; } }
+  .field.full { grid-column: 1 / -1; }
+
+  .field label { display: block; font-size: 0.78rem; color: #888; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.05em; }
+  .field input, .field select {
+    width: 100%; padding: 9px 11px; border: 1.5px solid #333; border-radius: 6px;
+    font-size: 0.95rem; color: #fff; background: #1a1a1a; transition: border-color 0.2s;
+  }
+  .field input:focus, .field select:focus { outline: none; border-color: #008080; box-shadow: 0 0 0 2px rgba(0,128,128,0.2); }
+  .field select option { background: #1a1a1a; }
+
+  .info-box { background: #0d1a1a; border: 1px solid #1a3a3a; border-radius: 8px; padding: 12px 14px; margin-bottom: 14px; font-size: 0.82rem; color: #666; line-height: 1.6; }
+  .info-box b { color: #008080; }
+
+  /* Tabs periodicidade */
+  .tabs { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+  .tab { padding: 7px 14px; border-radius: 6px; border: 1.5px solid #333; font-size: 0.78rem; font-weight: 700; cursor: pointer; color: #888; background: #1a1a1a; transition: all 0.18s; text-transform: uppercase; }
+  .tab:hover { border-color: #008080; color: #008080; }
+  .tab.ativo { background: #008080; border-color: #008080; color: #fff; }
+
+  button.calcular { background: #008080; color: #fff; border: none; padding: 10px 26px; border-radius: 6px; font-size: 0.82rem; font-weight: 700; letter-spacing: 0.07em; cursor: pointer; transition: background 0.18s; text-transform: uppercase; }
+  button.calcular:hover { background: #006666; box-shadow: 0 0 10px rgba(0,128,128,0.4); }
+
+  /* Resultado */
+  .resultado { background: #0a1a0a; border: 1px solid #1a4a1a; border-radius: 10px; padding: 20px 22px; margin-top: 14px; display: none; }
+  .resultado.visible { display: block; }
+  .resultado-titulo { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; color: #008080; font-weight: 700; margin-bottom: 16px; }
+
+  .res-principal { text-align: center; margin-bottom: 20px; }
+  .res-principal label { display: block; font-size: 0.72rem; color: #555; text-transform: uppercase; margin-bottom: 6px; }
+  .res-principal .v { font-size: 1.7rem; font-weight: 700; color: #00ff00; font-family: 'Courier New', monospace; }
+  .res-principal .sub { font-size: 0.82rem; color: #555; margin-top: 4px; }
+
+  .res-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px; }
+  @media (max-width: 520px) { .res-grid { grid-template-columns: 1fr 1fr; } }
+  .res-item label { display: block; font-size: 0.72rem; color: #555; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
+  .res-item .valor { font-size: 1rem; font-weight: 700; color: #ccc; font-family: 'Courier New', monospace; }
+  .res-item .valor.teal { color: #008080; }
+  .res-item .valor.verde { color: #00ff00; }
+  .res-item .valor.roxo { color: #8B00FF; }
+  .res-item .valor.sec { color: #555; font-size: 0.9rem; }
+
+  .divider { border: none; border-top: 1px solid #1a3a1a; margin: 14px 0; }
+
+  /* Simulação progressiva */
+  .sim-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px,1fr)); gap: 8px; margin-bottom: 14px; }
+  .sim-card { background: #111; border-radius: 8px; border: 1px solid #1a1a1a; padding: 12px 14px; text-align: center; }
+  .sim-card .sc-periodo { font-size: 0.72rem; color: #555; text-transform: uppercase; margin-bottom: 4px; }
+  .sim-card .sc-valor { font-size: 1rem; font-weight: 700; color: #00ff00; font-family: 'Courier New', monospace; }
+  .sim-card .sc-unidades { font-size: 0.72rem; color: #444; margin-top: 2px; }
+
+  /* Tabela diária */
+  .tabela-wrap { margin-top: 14px; overflow-x: auto; }
+  .tabela-wrap summary { cursor: pointer; color: #008080; font-size: 0.82rem; margin-bottom: 10px; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.82rem; min-width: 400px; }
+  th { text-align: left; color: #555; padding: 6px 8px; border-bottom: 1px solid #222; font-size: 0.72rem; text-transform: uppercase; }
+  td { color: #999; padding: 6px 8px; border-bottom: 1px solid #1a1a1a; }
+  tr:hover td { background: #151515; }
+  td.dest { color: #00ff00; font-weight: 700; font-family: 'Courier New', monospace; }
+  tr.total-row td { color: #fff; font-weight: 700; background: #0d1a0d; border-top: 1px solid #333; }
+
+  .erro { background: #1a0a0a; border: 1px solid #4a1a1a; border-radius: 8px; padding: 14px 16px; color: #ff6666; font-size: 0.88rem; margin-top: 14px; display: none; }
+  .erro.visible { display: block; }
+  .aviso { font-size: 0.72rem; color: #444; margin-top: 12px; line-height: 1.5; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="header">
+    <h1>Calculadora de Astreintes</h1>
+    <p class="subtitle">Calcule multas por descumprimento de obrigação judicial (astreintes). Base: CPC, art. 537.</p>
+    <p class="brand"><span class="s">suporte</span><span class="a">ADV</span>.br — Ferramentas para Advogados</p>
+  </div>
+
+  <div class="card">
+    <div class="info-box">
+      <b>O que são astreintes?</b> São multas coercitivas fixadas pelo juiz para forçar o cumprimento de obrigação de fazer, não fazer ou entregar coisa (CPC, art. 537). Incide por período de descumprimento (dia, hora, semana etc.) e pode ser modificada pelo juiz a qualquer tempo.
+    </div>
+
+    <div class="card-label">Parâmetros da Multa</div>
+    <div class="form-grid">
+      <div class="field">
+        <label>Valor da multa por unidade (R$)</label>
+        <input type="number" id="valorMulta" placeholder="Ex: 500,00" step="0.01" min="0">
+      </div>
+      <div class="field">
+        <label>Periodicidade da multa</label>
+        <select id="periodicidade">
+          <option value="hora">Por hora</option>
+          <option value="dia" selected>Por dia</option>
+          <option value="semana">Por semana</option>
+          <option value="quinzena">Por quinzena</option>
+          <option value="mes">Por mês</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Data de início do descumprimento</label>
+        <input type="date" id="dataInicio">
+      </div>
+      <div class="field">
+        <label>Data de cálculo (até)</label>
+        <input type="date" id="dataFim">
+      </div>
+      <div class="field">
+        <label>Valor máximo (teto) — opcional (R$)</label>
+        <input type="number" id="teto" placeholder="Deixe em branco se não houver" step="0.01" min="0">
+      </div>
+      <div class="field">
+        <label>Referência / Processo</label>
+        <input type="text" id="referencia" placeholder="Ex: Obrigação de entregar documentos">
+      </div>
+    </div>
+    <button class="calcular" onclick="calcular()">CALCULAR</button>
+  </div>
+
+  <div class="erro" id="erro"></div>
+
+  <div class="resultado" id="resultado">
+    <div class="resultado-titulo" id="res-titulo">Resultado — Astreintes</div>
+
+    <div class="res-principal">
+      <label>Total de astreintes acumuladas</label>
+      <div class="v" id="res-total">—</div>
+      <div class="sub" id="res-sub">—</div>
+    </div>
+
+    <div class="res-grid">
+      <div class="res-item"><label>Multa por unidade</label><div class="valor teal" id="res-multa-unit">—</div></div>
+      <div class="res-item"><label>Periodicidade</label><div class="valor sec" id="res-periodo">—</div></div>
+      <div class="res-item"><label>Unidades de descumprimento</label><div class="valor roxo" id="res-unidades">—</div></div>
+      <div class="res-item"><label>Início</label><div class="valor sec" id="res-inicio">—</div></div>
+      <div class="res-item"><label>Até</label><div class="valor sec" id="res-fim">—</div></div>
+      <div class="res-item"><label>Teto aplicado</label><div class="valor sec" id="res-teto">—</div></div>
+    </div>
+
+    <hr class="divider">
+
+    <div class="resultado-titulo">Simulação Progressiva</div>
+    <div class="sim-grid" id="sim-grid"></div>
+
+    <details class="tabela-wrap">
+      <summary>Ver acumulado período a período</summary>
+      <table>
+        <thead><tr><th>#</th><th>Período</th><th>Multa unitária</th><th>Acumulado</th></tr></thead>
+        <tbody id="tabela-body"></tbody>
+      </table>
+    </details>
+
+    <p class="aviso">⚠️ As astreintes podem ser modificadas, reduzidas ou canceladas pelo juiz a qualquer tempo, de ofício ou a requerimento (CPC, art. 537, §1º). O valor acumulado não garante recebimento integral. Consulte a decisão judicial que fixou a multa para verificar eventuais limitações.</p>
+  </div>
+
+</div>
+
+<script>
+function fmtMoeda(v) { return 'R$ ' + v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+function fmtData(d) { return d.toLocaleDateString('pt-BR', { day:'2-digit', month:'2-digit', year:'numeric' }); }
+
+function showErro(msg) {
+  document.getElementById('erro').textContent = msg;
+  document.getElementById('erro').classList.add('visible');
+  document.getElementById('resultado').classList.remove('visible');
+}
+function hideErro() { document.getElementById('erro').classList.remove('visible'); }
+
+const periodos = {
+  hora:     { nome: 'por hora',     horas: 1 },
+  dia:      { nome: 'por dia',      horas: 24 },
+  semana:   { nome: 'por semana',   horas: 168 },
+  quinzena: { nome: 'por quinzena', horas: 360 },
+  mes:      { nome: 'por mês',      horas: 720 },
+};
+
+function calcular() {
+  hideErro();
+  const valorMulta = parseFloat(document.getElementById('valorMulta').value);
+  if (!valorMulta || valorMulta <= 0) return showErro('Informe o valor da multa por unidade.');
+
+  const periodicidade = document.getElementById('periodicidade').value;
+  const dataIniStr = document.getElementById('dataInicio').value;
+  const dataFimStr = document.getElementById('dataFim').value;
+  if (!dataIniStr || !dataFimStr) return showErro('Informe as datas.');
+
+  const dataIni = new Date(dataIniStr + 'T00:00:00');
+  const dataFim = new Date(dataFimStr + 'T23:59:59');
+  if (dataFim < dataIni) return showErro('A data de cálculo deve ser posterior ao início.');
+
+  const teto = parseFloat(document.getElementById('teto').value) || null;
+  const referencia = document.getElementById('referencia').value;
+  const p = periodos[periodicidade];
+
+  // Calcula unidades
+  const diffHoras = (dataFim - dataIni) / 3600000;
+  const unidades = Math.ceil(diffHoras / p.horas);
+  let total = valorMulta * unidades;
+  const tetoAplicado = teto && total > teto;
+  if (tetoAplicado) total = teto;
+
+  // Resultado
+  document.getElementById('res-titulo').textContent = 'Astreintes' + (referencia ? ` — ${referencia}` : '');
+  document.getElementById('res-total').textContent = fmtMoeda(total);
+  document.getElementById('res-sub').textContent = tetoAplicado
+    ? `Limitado ao teto de ${fmtMoeda(teto)}`
+    : `${unidades} unidade${unidades !== 1 ? 's' : ''} × ${fmtMoeda(valorMulta)} = ${fmtMoeda(total)}`;
+  document.getElementById('res-multa-unit').textContent = fmtMoeda(valorMulta);
+  document.getElementById('res-periodo').textContent = p.nome;
+  document.getElementById('res-unidades').textContent = unidades + (periodicidade === 'hora' ? ' horas' : periodicidade === 'dia' ? ' dias' : periodicidade === 'semana' ? ' semanas' : periodicidade === 'quinzena' ? ' quinzenas' : ' meses');
+  document.getElementById('res-inicio').textContent = fmtData(dataIni);
+  document.getElementById('res-fim').textContent = fmtData(dataFim);
+  document.getElementById('res-teto').textContent = teto ? fmtMoeda(teto) + (tetoAplicado ? ' ✓ aplicado' : ' (não atingido)') : 'Sem teto';
+
+  // Simulação progressiva
+  const simGrid = document.getElementById('sim-grid');
+  simGrid.innerHTML = '';
+  const marcos = [
+    { label: '7 dias', unid: Math.ceil(7 * 24 / p.horas) },
+    { label: '15 dias', unid: Math.ceil(15 * 24 / p.horas) },
+    { label: '30 dias', unid: Math.ceil(30 * 24 / p.horas) },
+    { label: '60 dias', unid: Math.ceil(60 * 24 / p.horas) },
+    { label: '90 dias', unid: Math.ceil(90 * 24 / p.horas) },
+    { label: '180 dias', unid: Math.ceil(180 * 24 / p.horas) },
+  ];
+  marcos.forEach(m => {
+    let val = valorMulta * m.unid;
+    const limitado = teto && val > teto;
+    if (limitado) val = teto;
+    const card = document.createElement('div');
+    card.className = 'sim-card';
+    card.innerHTML = `
+      <div class="sc-periodo">${m.label}</div>
+      <div class="sc-valor">${fmtMoeda(val)}</div>
+      <div class="sc-unidades">${m.unid} unid.${limitado ? ' (teto)' : ''}</div>`;
+    simGrid.appendChild(card);
+  });
+
+  // Tabela detalhada (até 60 linhas)
+  const tbody = document.getElementById('tabela-body');
+  tbody.innerHTML = '';
+  const maxLinhas = Math.min(unidades, 60);
+  for (let i = 1; i <= maxLinhas; i++) {
+    const acum = Math.min(valorMulta * i, teto || Infinity);
+    const dataLinha = new Date(dataIni.getTime() + (i - 1) * p.horas * 3600000);
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${i}</td>
+      <td>${fmtData(dataLinha)}</td>
+      <td>${fmtMoeda(valorMulta)}</td>
+      <td class="dest">${fmtMoeda(acum)}</td>`;
+    tbody.appendChild(tr);
+  }
+  if (unidades > 60) {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td colspan="4" style="text-align:center;color:#555">... ${unidades - 60} períodos omitidos ...</td>`;
+    tbody.appendChild(tr);
+  }
+  const trT = document.createElement('tr');
+  trT.className = 'total-row';
+  trT.innerHTML = `<td colspan="3">TOTAL (${unidades} unidades)</td><td class="dest">${fmtMoeda(total)}</td>`;
+  tbody.appendChild(trT);
+
+  document.getElementById('resultado').classList.add('visible');
+}
+
+// Init
+const hoje = new Date();
+const inicio = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate() - 30);
+document.getElementById('dataInicio').value = inicio.toISOString().split('T')[0];
+document.getElementById('dataFim').value = hoje.toISOString().split('T')[0];
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter') { const f = document.activeElement; if (f && (f.tagName==='INPUT'||f.tagName==='SELECT')) calcular(); }
+});
+</script>
+</body>
+</html>
